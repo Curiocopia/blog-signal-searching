@@ -53,8 +53,20 @@ tree $TEST_HOME
 ```
 Expect something like:
 ```bash
-/tmp/tmp.csvhZhFv4x
+/tmp/tmp.BryNxJxhiM
 └── base
+    ├── kustomization.yaml
+    ├── locations.json
+    ├── weather-analyze-job.yaml
+    ├── weather-api-deployment.yaml
+    ├── weather-api-service.yaml
+    ├── weather-db-deployment.yaml
+    ├── weather-db-service.yaml
+    ├── weather-fetch-job.yaml
+    ├── weather-reduce-job.yaml
+    ├── weather-spectrum-config.env
+    ├── weather-spectrum-pvc.yaml
+    └── weather-spectrum-run-window.env
 
 ```
 ### The Base Customization
@@ -75,27 +87,79 @@ mkdir -p $RESOURCES
 
 kustomize build $BASE -o $RESOURCES
 tree $TEST_HOME
-/tmp/tmp.csvhZhFv4x
+/tmp/tmp.BryNxJxhiM
+├── base
+│   ├── kustomization.yaml
+│   ├── locations.json
+│   ├── weather-analyze-job.yaml
+│   ├── weather-api-deployment.yaml
+│   ├── weather-api-service.yaml
+│   ├── weather-db-deployment.yaml
+│   ├── weather-db-service.yaml
+│   ├── weather-fetch-job.yaml
+│   ├── weather-reduce-job.yaml
+│   ├── weather-spectrum-config.env
+│   ├── weather-spectrum-pvc.yaml
+│   └── weather-spectrum-run-window.env
+└── resources
+    ├── apps_v1_deployment_weather-api.yaml
+    ├── apps_v1_deployment_weather-db.yaml
+    ├── batch_v1_job_weather-analyze.yaml
+    ├── batch_v1_job_weather-fetch.yaml
+    ├── batch_v1_job_weather-reduce.yaml
+    ├── v1_configmap_weather-spectrum-config-kgt8ff684f.yaml
+    ├── v1_configmap_weather-spectrum-locations-tmtmb9dck2.yaml
+    ├── v1_configmap_weather-spectrum-run-window-fb2td5956g.yaml
+    ├── v1_persistentvolumeclaim_weather-spectrum-pvc.yaml
+    ├── v1_service_weather-api.yaml
+    └── v1_service_weather-db.yaml
 
 ```
-Follow the recipe below (adjust for your own exact filenames) for ConfigMap, pvc, `worker` StatefulSet, `worker` headless Service and `merger` Job:
+Follow the recipe below (adjust for your own exact filenames):
 ```bash
 cd $RESOURCES
 
-
+kubectl apply -f $RESOURCES/v1_persistentvolumeclaim_weather-spectrum-pvc.yaml
+kubectl apply -f $RESOURCES/v1_configmap_weather-spectrum-config-kgt8ff684f.yaml
+kubectl apply -f $RESOURCES/v1_configmap_weather-spectrum-locations-tmtmb9dck2.yaml
+kubectl apply -f $RESOURCES/apps_v1_deployment_weather-db.yaml
+kubectl apply -f $RESOURCES/v1_service_weather-db.yaml
+kubectl apply -f $RESOURCES/apps_v1_deployment_weather-api.yaml
+kubectl apply -f $RESOURCES/batch_v1_job_weather-fetch.yaml
 ```
 
-Once the resources are running, follow the job status
+Once the resources are running, follow the `weather-fetch` job status
 ```bash
 kubectl get jobs -w 
 ```
 ```bash
 $ kubectl get jobs -w
-NAME        STATUS    COMPLETIONS   DURATION   AGE
+NAME              STATUS     COMPLETIONS   DURATION   AGE
+weather-fetch     Complete   1/1           21s        45s
+```
+Once the job is completed, obtain the `WINDOW_START` and `WINDOW_END` values from the `weather-api`:
+```bash
+curl -s http://192.168.1.3:30080/runs | jq -rc '.[].window_start' 2>/dev/null
+2025-04-01T05:00:00+00:00
 
+curl -s http://192.168.1.3:30080/runs | jq -rc '.[].window_end' 2>/dev/null
+2026-04-01T04:00:00+00:00
 ```
-Once the job is completed, access the UI
+Use these values to patch the `weather-spectrum-run-window` configmap:
+```bash
+kubectl patch configmap weather-spectrum-run-window-fb2td5956g -p '{"data":{"WINDOW_START":"2025-04-01T05:00:00+00:00"}}'
+configmap/weather-spectrum-run-window-fb2td5956g patched
+
+kubectl patch configmap weather-spectrum-run-window-fb2td5956g -p '{"data":{"WINDOW_END":"2026-04-01T04:00:00+00:00"}}'
+configmap/weather-spectrum-run-window-fb2td5956g patched
 ```
+Run the `weather-analyze` Job and upon its termination `weather-reduce` Job:
+```bash
+kubectl apply -f $RESOURCES/batch_v1_job_weather-analyze.yaml
+kubectl wait --for=condition=complete job/weather-analyze
+kubectl apply -f $RESOURCES/batch_v1_job_weather-reduce.yaml
+```
+Once all the Jobs are complete, access the UI: http://<NODE-IP>:30080
 
 ## Create Overlay
 
@@ -119,7 +183,7 @@ images:
   newName: my-registry/weather-spectrum
   newTag: latest
 ```
-Adjust `pi-sets-demo.env` values for ConfigMap creation to use in various reources.
+Adjust `weather-spectrum-config-demo.env` values for ConfigMap creation to use in various reources.
 
 Adjust the values for the `spec.parallelism` and `spec.completion`  in the `weather-analyze-job-patch.yaml` to be identical to `WORKER_COUNT` set in `weather-spectrum-config-demo.env`.
 
