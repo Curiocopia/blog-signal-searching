@@ -125,6 +125,7 @@ kubectl apply -f $RESOURCES/v1_configmap_weather-spectrum-locations-tmtmb9dck2.y
 kubectl apply -f $RESOURCES/apps_v1_deployment_weather-db.yaml
 kubectl apply -f $RESOURCES/v1_service_weather-db.yaml
 kubectl apply -f $RESOURCES/apps_v1_deployment_weather-api.yaml
+kubectl apply -f $RESOURCES/v1_service_weather-api.yaml
 kubectl apply -f $RESOURCES/batch_v1_job_weather-fetch.yaml
 ```
 
