@@ -1,0 +1,7 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: weather-analyze
+spec:
+  parallelism: 10 #Make sure it is set to the same value as WORKER_COUNT variable.
+  completions: 10 #Make sure it is set to the same value as WORKER_COUNT variable.

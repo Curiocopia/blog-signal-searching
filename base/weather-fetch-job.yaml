@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: weather-fetch
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: fetch
+          image: YOUR_REGISTRY/weather-spectrum:latest
+          imagePullPolicy: IfNotPresent
+          command: ["python", "/app/fetch.py"]
+          envFrom:
+            - configMapRef:
+                name: weather-spectrum-config
+          volumeMounts:
+            - name: config
+              mountPath: /config
+      volumes:
+        - name: config
+          configMap:
+            name: weather-spectrum-locations

@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: demo
+
+images:
+- name: YOUR_REGISTRY/weather-spectrum
+  newName: my-registry/weather-spectrum
+  newTag: latest
+
+resources:
+- ../../base
+
+configMapGenerator:
+- name: weather-spectrum-run-window
+  behavior: replace
+  env: weather-spectrum-run-window-demo.env
+- name: weather-spectrum-config
+  behavior: replace
+  env: weather-spectrum-config-demo.env
+
+patches:
+- path: weather-analyze-job-patch.yaml
+  target:
+    kind: Job
+    name: weather-analyze

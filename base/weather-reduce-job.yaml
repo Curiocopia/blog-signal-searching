@@ -1,0 +1,16 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: weather-reduce
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: reducer
+          image: YOUR_REGISTRY/weather-spectrum:latest
+          imagePullPolicy: IfNotPresent
+          command: ["python", "/app/reduce.py"]
+          envFrom:
+            - configMapRef:
+                name: weather-spectrum-config

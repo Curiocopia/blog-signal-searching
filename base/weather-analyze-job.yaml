@@ -1,0 +1,37 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: weather-analyze
+spec:
+  parallelism: 10
+  completions: 10
+  completionMode: Indexed
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: analyzer
+          image: YOUR_REGISTRY/weather-spectrum:latest
+          imagePullPolicy: IfNotPresent
+          command: ["python", "/app/analyze_worker.py"]
+          envFrom:
+            - configMapRef:
+                name: weather-spectrum-config
+          env:
+            - name: WINDOW_START
+              valueFrom:
+                configMapKeyRef:
+                  name: weather-spectrum-run-window
+                  key: WINDOW_START
+            - name: WINDOW_END
+              valueFrom:
+                configMapKeyRef:
+                  name: weather-spectrum-run-window
+                  key: WINDOW_END
+          volumeMounts:
+            - name: config
+              mountPath: /config
+      volumes:
+        - name: config
+          configMap:
+            name: weather-spectrum-locations

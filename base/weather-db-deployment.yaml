@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: weather-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: weather-db
+  template:
+    metadata:
+      labels:
+        app: weather-db
+    spec:
+      containers:
+        - name: db
+          image: YOUR_REGISTRY/weather-spectrum:latest
+          imagePullPolicy: IfNotPresent
+          command: ["python", "/app/db_service.py"]
+          envFrom:
+            - configMapRef:
+                name: weather-spectrum-config
+          ports:
+            - containerPort: 8081
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: weather-spectrum-pvc
