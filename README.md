@@ -146,8 +146,9 @@ curl -s http://$NODE_IP:30080/runs | jq -rc '.[].window_start' 2>/dev/null
 curl -s http://$NODE_IP:30080/runs | jq -rc '.[].window_end' 2>/dev/null
 2026-04-01T04:00:00+00:00
 ```
-Use these values to patch the `weather-spectrum-run-window` configmap:
+First apply the template `weather-spectrum-run-window` configmap and then use the values obtained from the `weather-api` to patch them:
 ```bash
+kubectl apply -f $RESOURCES/v1_configmap_weather-spectrum-run-window-fb2td5956g.yaml
 kubectl patch configmap weather-spectrum-run-window-fb2td5956g -p '{"data":{"WINDOW_START":"2025-04-01T05:00:00+00:00"}}'
 configmap/weather-spectrum-run-window-fb2td5956g patched
 
