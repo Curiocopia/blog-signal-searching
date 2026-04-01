@@ -14,7 +14,7 @@ Kubernetes implementation includes:
 
 Please refer to [Signal Searching] for the specific blog and the relevant repo(s). If you don't have time TL;DR:
 
-Analysis of een a 365-day worth of weather data across the world provide interesting insights. Primarily, the influence of semi-diurnal (12-hour period) and diurnal (24-hour period) surface pressure oscillations are easily recognizable for different geographies. This simple demo has provided patterns matching results reported by a 1999 paper from [NSF National Center for Atmospheric Research].  
+Analysis of 365-day long weather data across the world provide interesting insights. Primarily, the influence of semi-diurnal (12-hour period) and diurnal (24-hour period) surface pressure oscillations are easily recognizable for different geographies. This simple demo has provided patterns matching results reported by a 1999 paper from [NSF National Center for Atmospheric Research].  
 
 ### ✍️ Authors
 
