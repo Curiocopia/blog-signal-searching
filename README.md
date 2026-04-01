@@ -139,10 +139,10 @@ weather-fetch     Complete   1/1           21s        45s
 ```
 Once the job is completed, obtain the `WINDOW_START` and `WINDOW_END` values from the `weather-api`:
 ```bash
-curl -s http://192.168.1.3:30080/runs | jq -rc '.[].window_start' 2>/dev/null
+curl -s http://$NODE_IP:30080/runs | jq -rc '.[].window_start' 2>/dev/null
 2025-04-01T05:00:00+00:00
 
-curl -s http://192.168.1.3:30080/runs | jq -rc '.[].window_end' 2>/dev/null
+curl -s http://$NODE_IP:30080/runs | jq -rc '.[].window_end' 2>/dev/null
 2026-04-01T04:00:00+00:00
 ```
 Use these values to patch the `weather-spectrum-run-window` configmap:
@@ -159,7 +159,7 @@ kubectl apply -f $RESOURCES/batch_v1_job_weather-analyze.yaml
 kubectl wait --for=condition=complete job/weather-analyze
 kubectl apply -f $RESOURCES/batch_v1_job_weather-reduce.yaml
 ```
-Once all the Jobs are complete, access the UI: http://<NODE-IP>:30080
+Once all the Jobs are complete, access the UI: http://$NODE_IP:30080
 
 ## Create Overlay
 
